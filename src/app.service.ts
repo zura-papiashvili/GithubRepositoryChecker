@@ -35,7 +35,7 @@ export class AppService {
   async logData(data: Repository[], prefix: string): Promise<void> {
     const randomName = uuid();
     fs.writeFile(
-      `${process.env.LOG_DIR}/${prefix}${randomName}.json`,
+      `${process.env.LOG_DIR}/${prefix}-${randomName}.json`,
       JSON.stringify(data),
       'utf8',
       function (err) {

@@ -1,10 +1,9 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { AppService } from './app.service';
-import { getAllRepositoriesSto, SortDir } from './get-repositories.dto';
+import { getAllRepositoriesDto, SortDir } from './get-repositories.dto';
 import { Repository } from './repository.interface';
-import * as fs from 'fs';
-import { v4 as uuid } from 'uuid';
-import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
+
+import { ApiBody, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Github Repos')
 @Controller()
@@ -12,32 +11,25 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Post()
-  @ApiConsumes('multipart/form-data')
   @ApiBody({
-    type: getAllRepositoriesSto,
+    type: getAllRepositoriesDto,
   })
   async getRepositories(
-    @Body() query: getAllRepositoriesSto,
+    @Body() body: getAllRepositoriesDto,
   ): Promise<Repository[]> {
-    const page = query.page || 1;
-    const limit = query.limit || 20;
-    const sortDir = query.sortDir || SortDir.DESC;
+    const page = body.page || 1;
+    const limit = body.limit || 20;
+    const sortDir = body.sortDir || SortDir.DESC;
     const data = await this.appService.getRepositories({
-      searchKey: query.searchKey,
-      ignoreKey: query.ignoreKey,
+      searchKey: body.searchKey,
+      ignoreKey: body.ignoreKey,
       page,
       limit,
       sortDir,
     });
-    const randomName = uuid();
-    fs.writeFile(
-      `${process.env.LOG_DIR}/${randomName}.txt`,
-      JSON.stringify(data),
-      function (err) {
-        if (err) throw err;
-        console.log('File is created successfully.');
-      },
-    );
+    if (data) {
+      await this.appService.logData(data, body.searchKey);
+    }
     return data;
   }
 }

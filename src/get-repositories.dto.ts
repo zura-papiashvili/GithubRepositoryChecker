@@ -6,7 +6,7 @@ export enum SortDir {
   ASC = 'asc',
 }
 
-export class getAllRepositoriesSto {
+export class getAllRepositoriesDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()

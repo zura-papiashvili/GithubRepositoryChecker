@@ -1,19 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import fetch from 'node-fetch';
-import { getAllRepositoriesSto } from './get-repositories.dto';
+import { getAllRepositoriesDto } from './get-repositories.dto';
 import { Repository } from './repository.interface';
+import * as fs from 'fs';
+import { v4 as uuid } from 'uuid';
 @Injectable()
 export class AppService {
   getHello(): string {
     return 'Hello World!';
   }
 
-  async getRepositories(query: getAllRepositoriesSto): Promise<Repository[]> {
-    const gitQuery = `https://api.github.com/search/repositories?q=${query.searchKey}&page=${query.page}&per_page=${query.limit}&order=${query.sortDir}`;
+  async getRepositories(query: getAllRepositoriesDto): Promise<Repository[]> {
+    const gitQuery = `https://api.github.com/search/repositories?q=${query.searchKey}&page=${query.page}&per_page=${query.limit}&sort=name&order=${query.sortDir}`;
     let result = null;
     await fetch(gitQuery)
       .then((res) => res.json())
-      .then((text) => (result = text));
+      .then((data) => (result = data));
 
     result = result.items.map((item) => ({
       name: item.name,
@@ -28,5 +30,19 @@ export class AppService {
       });
     }
     return result;
+  }
+
+  async logData(data: Repository[], prefix: string): Promise<void> {
+    const randomName = uuid();
+    fs.writeFile(
+      `${process.env.LOG_DIR}/${prefix}${randomName}.json`,
+      JSON.stringify(data),
+      'utf8',
+      function (err) {
+        if (err) throw err;
+        console.log('File is created successfully.');
+      },
+    );
+    return;
   }
 }
